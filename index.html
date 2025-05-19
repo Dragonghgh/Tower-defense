@@ -5,132 +5,441 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tower Defense Game</title>
     <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --path-color: #95a5a6;
+            --tower-basic: #3498db;
+            --tower-sniper: #e74c3c;
+            --tower-splash: #2ecc71;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
         }
+
         #game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
         }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        #game-canvas-container {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+        }
+
         #game-canvas {
-            border: 2px solid #333;
+            border: 3px solid var(--secondary-color);
+            border-radius: 8px;
             background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
         }
+
         #game-ui {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            width: 800px;
+            flex: 0 0 300px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
         }
+
         #stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
         }
-        #tower-select {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 10px;
-        }
-        .tower-option {
+
+        .stat-card {
+            background-color: var(--light-color);
             padding: 10px;
-            border: 1px solid #333;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 6px;
             text-align: center;
-            background-color: #ddd;
         }
-        .tower-option:hover {
-            background-color: #ccc;
+
+        .stat-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 0.9rem;
+            color: var(--secondary-color);
         }
-        .tower-option.selected {
-            background-color: #4CAF50;
-            color: white;
-        }
-        #controls {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 0 10px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        #message {
-            text-align: center;
-            margin-top: 10px;
+
+        .stat-card .value {
+            font-size: 1.4rem;
             font-weight: bold;
-            min-height: 20px;
+            color: var(--dark-color);
+        }
+
+        #tower-select {
+            margin-bottom: 20px;
+        }
+
+        #tower-select h2 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 8px;
+        }
+
+        .tower-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: var(--light-color);
+            border: 2px solid transparent;
+        }
+
+        .tower-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .tower-option.selected {
+            border-color: var(--accent-color);
+            background-color: rgba(79, 195, 247, 0.1);
+        }
+
+        .tower-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .tower-info {
+            flex: 1;
+        }
+
+        .tower-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 1rem;
+        }
+
+        .tower-stats {
+            display: flex;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .tower-stats span {
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .tower-stats i {
+            margin-right: 3px;
+            font-size: 0.9rem;
+        }
+
+        #controls {
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #e67e22;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s;
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
+        #message.show {
+            opacity: 1;
+            height: auto;
+            padding: 12px;
+            margin-top: 20px;
+        }
+
+        #message.success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+            border: 1px solid rgba(46, 204, 113, 0.5);
+        }
+
+        #message.info {
+            background-color: rgba(74, 111, 165, 0.2);
+            color: var(--primary-color);
+            border: 1px solid rgba(74, 111, 165, 0.5);
+        }
+
+        #message.warning {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: var(--warning-color);
+            border: 1px solid rgba(243, 156, 18, 0.5);
+        }
+
+        #message.error {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+            border: 1px solid rgba(231, 76, 60, 0.5);
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 100;
+            transform: translate(-50%, -100%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .tooltip:after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+        }
+
+        @media (max-width: 768px) {
+            #game-area {
+                flex-direction: column;
+            }
+            
+            #game-ui {
+                flex: 0 0 auto;
+            }
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <h1>Tower Defense</h1>
-        <canvas id="game-canvas" width="800" height="500"></canvas>
-        <div id="game-ui">
-            <div id="stats">
-                <div>Lives: <span id="lives">10</span></div>
-                <div>Money: $<span id="money">100</span></div>
-                <div>Wave: <span id="wave">0</span></div>
-                <div>Enemies: <span id="enemies">0</span></div>
+        <header>
+            <h1>Tower Defense</h1>
+        </header>
+        
+        <div id="game-area">
+            <div id="game-canvas-container">
+                <canvas id="game-canvas" width="800" height="500"></canvas>
+                <div class="tooltip" id="tooltip"></div>
             </div>
-            <div id="tower-select">
-                <div class="tower-option" data-type="basic" data-cost="20">
-                    <h3>Basic Tower ($20)</h3>
-                    <p>Range: 150px</p>
-                    <p>Damage: 1</p>
+            
+            <div id="game-ui">
+                <div id="stats">
+                    <div class="stat-card">
+                        <h3>Lives</h3>
+                        <div class="value" id="lives">10</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Money</h3>
+                        <div class="value" id="money">100</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Wave</h3>
+                        <div class="value" id="wave">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Enemies</h3>
+                        <div class="value" id="enemies">0</div>
+                    </div>
                 </div>
-                <div class="tower-option" data-type="sniper" data-cost="50">
-                    <h3>Sniper Tower ($50)</h3>
-                    <p>Range: 300px</p>
-                    <p>Damage: 3</p>
+                
+                <div id="tower-select">
+                    <h2>Select Tower</h2>
+                    <div class="tower-option" data-type="basic" data-cost="20">
+                        <div class="tower-icon" style="background-color: var(--tower-basic);">B</div>
+                        <div class="tower-info">
+                            <h3>Basic Tower</h3>
+                            <div class="tower-stats">
+                                <span><i>💰</i> $20</span>
+                                <span><i>🎯</i> 150px</span>
+                                <span><i>⚔️</i> 1</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tower-option" data-type="sniper" data-cost="50">
+                        <div class="tower-icon" style="background-color: var(--tower-sniper);">S</div>
+                        <div class="tower-info">
+                            <h3>Sniper Tower</h3>
+                            <div class="tower-stats">
+                                <span><i>💰</i> $50</span>
+                                <span><i>🎯</i> 300px</span>
+                                <span><i>⚔️</i> 3</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tower-option" data-type="splash" data-cost="40">
+                        <div class="tower-icon" style="background-color: var(--tower-splash);">A</div>
+                        <div class="tower-info">
+                            <h3>Splash Tower</h3>
+                            <div class="tower-stats">
+                                <span><i>💰</i> $40</span>
+                                <span><i>🎯</i> 120px</span>
+                                <span><i>⚔️</i> 2 (AOE)</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="tower-option" data-type="splash" data-cost="40">
-                    <h3>Splash Tower ($40)</h3>
-                    <p>Range: 120px</p>
-                    <p>Damage: 2 (AOE)</p>
+                
+                <div id="controls">
+                    <button class="btn btn-primary" id="start-wave">Start Wave</button>
+                    <button class="btn btn-success" id="upgrade-tower" disabled>Upgrade ($50)</button>
+                    <button class="btn btn-danger" id="sell-tower" disabled>Sell ($10)</button>
                 </div>
+                
+                <div id="message"></div>
             </div>
-            <div id="controls">
-                <button id="start-wave">Start Wave</button>
-                <button id="upgrade-tower" disabled>Upgrade Tower ($50)</button>
-                <button id="sell-tower" disabled>Sell Tower ($10)</button>
-            </div>
-            <div id="message"></div>
         </div>
     </div>
 
     <script>
         // Game constants
         const TOWER_TYPES = {
-            basic: { color: '#3498db', range: 150, damage: 1, cooldown: 20, cost: 20 },
-            sniper: { color: '#e74c3c', range: 300, damage: 3, cooldown: 60, cost: 50 },
-            splash: { color: '#2ecc71', range: 120, damage: 2, cooldown: 40, cost: 40, aoe: true }
+            basic: { 
+                name: "Basic Tower",
+                color: 'var(--tower-basic)', 
+                range: 150, 
+                damage: 1, 
+                cooldown: 20, 
+                cost: 20,
+                description: "Balanced tower with average range and damage."
+            },
+            sniper: { 
+                name: "Sniper Tower",
+                color: 'var(--tower-sniper)', 
+                range: 300, 
+                damage: 3, 
+                cooldown: 60, 
+                cost: 50,
+                description: "Long-range tower with high single-target damage."
+            },
+            splash: { 
+                name: "Splash Tower",
+                color: 'var(--tower-splash)', 
+                range: 120, 
+                damage: 2, 
+                cooldown: 40, 
+                cost: 40, 
+                aoe: true,
+                description: "Short-range tower that damages multiple enemies."
+            }
         };
 
         const ENEMY_TYPES = [
-            { color: '#9b59b6', speed: 1, health: 3, value: 5 },
-            { color: '#f39c12', speed: 1.5, health: 2, value: 7 },
-            { color: '#34495e', speed: 0.8, health: 6, value: 10 }
+            { name: "Basic Enemy", color: '#9b59b6', speed: 1, health: 3, value: 5 },
+            { name: "Fast Enemy", color: '#f39c12', speed: 1.5, health: 2, value: 7 },
+            { name: "Tank Enemy", color: '#34495e', speed: 0.8, health: 6, value: 10 }
         ];
 
         const WAVE_ENEMY_COUNT = 5;
@@ -161,7 +470,11 @@
             enemiesSpawned: 0,
             enemiesKilled: 0,
             lastSpawnTime: 0,
-            spawnInterval: 1000
+            spawnInterval: 1000,
+            mouseX: 0,
+            mouseY: 0,
+            hoveredTower: null,
+            hoveredEnemy: null
         };
 
         // DOM elements
@@ -176,11 +489,18 @@
         const upgradeTowerBtn = document.getElementById('upgrade-tower');
         const sellTowerBtn = document.getElementById('sell-tower');
         const towerOptions = document.querySelectorAll('.tower-option');
+        const tooltip = document.getElementById('tooltip');
 
         // Initialize game
         function init() {
+            // Set canvas size
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
             // Event listeners
             canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseout', handleMouseOut);
             startWaveBtn.addEventListener('click', startWave);
             upgradeTowerBtn.addEventListener('click', upgradeTower);
             sellTowerBtn.addEventListener('click', sellTower);
@@ -198,6 +518,19 @@
 
             // Start game loop
             requestAnimationFrame(gameLoop);
+        }
+
+        function resizeCanvas() {
+            const container = document.getElementById('game-canvas-container');
+            const ratio = 800 / 500; // Original canvas aspect ratio
+            
+            if (container.clientWidth / ratio < container.clientHeight) {
+                canvas.style.width = container.clientWidth + 'px';
+                canvas.style.height = (container.clientWidth / ratio) + 'px';
+            } else {
+                canvas.style.height = container.clientHeight + 'px';
+                canvas.style.width = (container.clientHeight * ratio) + 'px';
+            }
         }
 
         // Game loop
@@ -232,6 +565,7 @@
                         state.lives--;
                         livesDisplay.textContent = state.lives;
                         removeEnemy(enemy);
+                        showMessage(`Enemy reached base! Lives: ${state.lives}`, 'error');
                         checkGameOver();
                         return;
                     }
@@ -292,6 +626,9 @@
                     projectile.y += (dy / distance) * projectile.speed;
                 }
             });
+
+            // Update hover information
+            updateHoverInfo();
         }
 
         // Render game
@@ -305,7 +642,7 @@
             for (let i = 1; i < PATH.length; i++) {
                 ctx.lineTo(PATH[i].x, PATH[i].y);
             }
-            ctx.strokeStyle = '#777';
+            ctx.strokeStyle = 'var(--path-color)';
             ctx.lineWidth = 40;
             ctx.stroke();
             
@@ -315,21 +652,21 @@
             for (let i = 1; i < PATH.length; i++) {
                 ctx.lineTo(PATH[i].x, PATH[i].y);
             }
-            ctx.strokeStyle = '#333';
+            ctx.strokeStyle = 'var(--dark-color)';
             ctx.lineWidth = 2;
             ctx.stroke();
             
             // Draw towers
             state.towers.forEach(tower => {
                 // Tower base
-                ctx.fillStyle = tower === state.selectedTower ? '#ffff00' : TOWER_TYPES[tower.type].color;
+                ctx.fillStyle = tower === state.selectedTower ? 'var(--accent-color)' : TOWER_TYPES[tower.type].color;
                 ctx.beginPath();
                 ctx.arc(tower.x, tower.y, 20, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Tower range (only when selected)
-                if (tower === state.selectedTower) {
-                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+                // Tower range (only when selected or hovered)
+                if (tower === state.selectedTower || tower === state.hoveredTower) {
+                    ctx.strokeStyle = 'rgba(79, 195, 247, 0.3)';
                     ctx.beginPath();
                     ctx.arc(tower.x, tower.y, TOWER_TYPES[tower.type].range, 0, Math.PI * 2);
                     ctx.stroke();
@@ -338,8 +675,10 @@
                 // Tower level indicator
                 if (tower.level > 1) {
                     ctx.fillStyle = '#fff';
-                    ctx.font = '12px Arial';
-                    ctx.fillText(tower.level.toString(), tower.x - 4, tower.y + 4);
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(tower.level.toString(), tower.x, tower.y);
                 }
             });
             
@@ -351,9 +690,14 @@
                 ctx.arc(enemy.x, enemy.y, 15, 0, Math.PI * 2);
                 ctx.fill();
                 
+                // Enemy health bar background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(enemy.x - 15, enemy.y - 25, 30, 5);
+                
                 // Enemy health bar
                 const healthPercent = enemy.health / enemy.maxHealth;
-                ctx.fillStyle = healthPercent > 0.6 ? '#2ecc71' : healthPercent > 0.3 ? '#f39c12' : '#e74c3c';
+                ctx.fillStyle = healthPercent > 0.6 ? 'var(--success-color)' : 
+                               healthPercent > 0.3 ? 'var(--warning-color)' : 'var(--danger-color)';
                 ctx.fillRect(enemy.x - 15, enemy.y - 25, 30 * healthPercent, 5);
             });
             
@@ -363,14 +707,43 @@
                 ctx.beginPath();
                 ctx.arc(projectile.x, projectile.y, 5, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Draw projectile trail
+                ctx.strokeStyle = projectile.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(projectile.source.x, projectile.source.y);
+                ctx.lineTo(projectile.x, projectile.y);
+                ctx.stroke();
             });
+            
+            // Draw hover effect for selected tower placement
+            if (!state.selectedTower && state.selectedTowerType && !state.waveInProgress) {
+                const towerType = TOWER_TYPES[state.selectedTowerType];
+                const canPlace = !isOnPath(state.mouseX, state.mouseY) && state.money >= towerType.cost;
+                
+                ctx.strokeStyle = canPlace ? 'var(--success-color)' : 'var(--danger-color)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(state.mouseX, state.mouseY, 20, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                if (canPlace) {
+                    ctx.strokeStyle = 'rgba(46, 204, 113, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(state.mouseX, state.mouseY, towerType.range, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
         }
 
         // Event handlers
         function handleCanvasClick(e) {
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
             
             // Check if clicking on an existing tower
             for (const tower of state.towers) {
@@ -383,6 +756,7 @@
                     state.selectedTower = tower;
                     upgradeTowerBtn.disabled = state.money < 50;
                     sellTowerBtn.disabled = false;
+                    showMessage(`${TOWER_TYPES[tower.type].name} selected (Level ${tower.level})`, 'info');
                     return;
                 }
             }
@@ -393,12 +767,85 @@
             sellTowerBtn.disabled = true;
             
             // Check if valid placement (not on path)
-            if (!isOnPath(x, y) && state.money >= TOWER_TYPES[state.selectedTowerType].cost) {
+            const towerType = TOWER_TYPES[state.selectedTowerType];
+            if (!isOnPath(x, y) && state.money >= towerType.cost) {
                 placeTower(x, y, state.selectedTowerType);
             } else if (isOnPath(x, y)) {
-                showMessage("Can't place tower on path!");
+                showMessage("Can't place tower on path!", 'error');
             } else {
-                showMessage("Not enough money!");
+                showMessage(`Not enough money! Need $${towerType.cost}`, 'error');
+            }
+        }
+
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            state.mouseX = (e.clientX - rect.left) * scaleX;
+            state.mouseY = (e.clientY - rect.top) * scaleY;
+        }
+
+        function handleMouseOut() {
+            state.hoveredTower = null;
+            state.hoveredEnemy = null;
+            tooltip.style.opacity = '0';
+        }
+
+        function updateHoverInfo() {
+            // Reset hover states
+            state.hoveredTower = null;
+            state.hoveredEnemy = null;
+            
+            // Check for tower hover
+            for (const tower of state.towers) {
+                const dx = state.mouseX - tower.x;
+                const dy = state.mouseY - tower.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance <= 20) {
+                    state.hoveredTower = tower;
+                    break;
+                }
+            }
+            
+            // Check for enemy hover
+            for (const enemy of state.enemies) {
+                const dx = state.mouseX - enemy.x;
+                const dy = state.mouseY - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance <= 15) {
+                    state.hoveredEnemy = enemy;
+                    break;
+                }
+            }
+            
+            // Update tooltip
+            if (state.hoveredTower) {
+                const tower = state.hoveredTower;
+                const type = TOWER_TYPES[tower.type];
+                tooltip.innerHTML = `
+                    <strong>${type.name} (Level ${tower.level})</strong><br>
+                    Damage: ${type.damage}<br>
+                    Range: ${type.range}px<br>
+                    ${type.aoe ? 'Splash damage' : 'Single target'}
+                `;
+                tooltip.style.left = `${tower.x}px`;
+                tooltip.style.top = `${tower.y - 30}px`;
+                tooltip.style.opacity = '1';
+            } else if (state.hoveredEnemy) {
+                const enemy = state.hoveredEnemy;
+                tooltip.innerHTML = `
+                    <strong>${enemy.name}</strong><br>
+                    Health: ${enemy.health}/${enemy.maxHealth}<br>
+                    Speed: ${enemy.speed.toFixed(1)}<br>
+                    Value: $${enemy.value}
+                `;
+                tooltip.style.left = `${enemy.x}px`;
+                tooltip.style.top = `${enemy.y - 30}px`;
+                tooltip.style.opacity = '1';
+            } else {
+                tooltip.style.opacity = '0';
             }
         }
 
@@ -413,7 +860,7 @@
             state.waveInProgress = true;
             startWaveBtn.disabled = true;
             enemiesDisplay.textContent = state.enemiesInWave;
-            showMessage(`Wave ${state.wave} started!`);
+            showMessage(`Wave ${state.wave} started! Defend your base!`, 'info');
         }
 
         function upgradeTower() {
@@ -429,7 +876,7 @@
             towerType.damage += 1;
             towerType.range += 20;
             
-            showMessage(`Tower upgraded to level ${state.selectedTower.level}!`);
+            showMessage(`${towerType.name} upgraded to level ${state.selectedTower.level}!`, 'success');
         }
 
         function sellTower() {
@@ -447,14 +894,14 @@
             upgradeTowerBtn.disabled = true;
             sellTowerBtn.disabled = true;
             
-            showMessage(`Tower sold for $${refund}!`);
+            showMessage(`Tower sold for $${refund}!`, 'info');
         }
 
         // Helper functions
         function placeTower(x, y, type) {
             const cost = TOWER_TYPES[type].cost;
             if (state.money < cost) {
-                showMessage("Not enough money!");
+                showMessage(`Not enough money! Need $${cost}`, 'error');
                 return;
             }
             
@@ -467,7 +914,7 @@
             state.money -= cost;
             moneyDisplay.textContent = state.money;
             
-            showMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} tower placed!`);
+            showMessage(`${TOWER_TYPES[type].name} placed for $${cost}!`, 'success');
         }
 
         function spawnEnemy() {
@@ -482,7 +929,8 @@
                 health: enemyType.health,
                 maxHealth: enemyType.health,
                 color: enemyType.color,
-                value: enemyType.value
+                value: enemyType.value,
+                name: enemyType.name
             });
             
             state.enemiesSpawned++;
@@ -520,6 +968,7 @@
             state.projectiles.push({
                 x: tower.x,
                 y: tower.y,
+                source: { x: tower.x, y: tower.y },
                 target: target,
                 speed: 5,
                 damage: towerType.damage,
@@ -568,7 +1017,10 @@
             if (state.enemiesKilled >= state.enemiesInWave && state.enemies.length === 0) {
                 state.waveInProgress = false;
                 startWaveBtn.disabled = false;
-                showMessage(`Wave ${state.wave} completed!`);
+                const moneyEarned = Math.floor(state.wave * 1.5) * 10;
+                state.money += moneyEarned;
+                moneyDisplay.textContent = state.money;
+                showMessage(`Wave ${state.wave} completed! Earned $${moneyEarned}`, 'success');
             }
         }
 
@@ -576,15 +1028,19 @@
             if (state.lives <= 0) {
                 state.waveInProgress = false;
                 startWaveBtn.disabled = true;
-                showMessage(`Game Over! You reached wave ${state.wave}`);
+                showMessage(`Game Over! You reached wave ${state.wave}`, 'error');
             }
         }
 
-        function showMessage(msg) {
+        function showMessage(msg, type) {
             messageDisplay.textContent = msg;
+            messageDisplay.className = '';
+            messageDisplay.classList.add(type);
+            messageDisplay.classList.add('show');
+            
             setTimeout(() => {
                 if (messageDisplay.textContent === msg) {
-                    messageDisplay.textContent = '';
+                    messageDisplay.classList.remove('show');
                 }
             }, 3000);
         }
